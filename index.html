@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Where am I?</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="css/app.css?v=13" />
+</head>
+<body>
+
+  <!-- ============================================================
+       Rotate-device overlay
+       Shown only on small screens (phones) in landscape orientation.
+       CSS media query: landscape + max-height ≤ 500 px (phone heuristic).
+       Hidden on tablets / desktops where landscape is perfectly fine.
+  ============================================================ -->
+  <div id="rotate-overlay" aria-hidden="true">
+    <div id="rotate-overlay-inner">
+      <div id="rotate-icon">&#x21BA;</div>
+      <p>Please rotate your device to portrait mode</p>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       VIEW: Home screen  (id="view-home")
+       Mirrors the Android WhereAmI Activity / whereami.xml layout
+  ============================================================ -->
+  <div id="view-home" class="view">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark px-3 whereami-navbar d-flex align-items-center">
+      <!-- Left slot (empty on home screen, keeps title centred) -->
+      <div style="width:4rem"></div>
+      <!-- Centre: title -->
+      <span class="navbar-brand whereami-title mb-0">Where am I?</span>
+      <!-- Right slot: action icons -->
+      <div class="d-flex gap-3 ms-auto">
+        <button class="btn btn-link p-0 whereami-nav-icon"
+                aria-label="Settings"
+                onclick="App.showView('view-settings')">
+          <i class="bi bi-gear-fill fs-4"></i>
+        </button>
+        <button class="btn btn-link p-0 whereami-nav-icon"
+                aria-label="Help"
+                onclick="App.showView('view-help')">
+          <i class="bi bi-question-circle-fill fs-4"></i>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main button panel — full-width stack, matching Android layout -->
+    <div class="container-fluid px-3 mt-3 d-flex flex-column gap-3">
+
+      <button id="btnWhere"
+              class="btn btn-whereami w-100"
+              aria-label="Where am I?"
+              onclick="App.showView('view-map', 'WHERE_AM_I')">
+        Where am I?
+      </button>
+
+      <button id="btnDirection"
+              class="btn btn-whereami w-100"
+              aria-label="I am lost - Show direction!"
+              onclick="App.showView('view-map', 'SHOW_DIRECTION')">
+        I am lost &ndash; Show direction!
+      </button>
+
+      <button id="btnMark"
+              class="btn btn-whereami w-100"
+              aria-label="Set Mark"
+              onclick="App.handleMarkButton()">
+        Set Mark
+      </button>
+
+    </div>
+
+    <!-- GPS unavailable banner (hidden until needed) -->
+    <div id="gps-alert" class="alert alert-warning mx-3 mt-4 d-none" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      GPS is not available in this browser. Location features are disabled.
+    </div>
+
+  </div><!-- /view-home -->
+
+
+  <!-- ============================================================
+       VIEW: Settings  (id="view-settings")
+       Mirrors SettingsActivity.java / settingsactivity.xml
+  ============================================================ -->
+  <div id="view-settings" class="view d-none">
+
+    <nav class="navbar navbar-dark px-3 whereami-navbar d-flex align-items-center">
+      <div style="width:4rem">
+        <button class="btn btn-link p-0 whereami-nav-icon"
+                aria-label="Back"
+                onclick="App.settingsBack()">
+          <i class="bi bi-arrow-left-circle-fill fs-4"></i>
+        </button>
+      </div>
+      <span class="navbar-brand whereami-title mb-0">Settings</span>
+      <div style="width:4rem"></div>
+    </nav>
+
+    <div class="container-fluid px-3 mt-3">
+
+      <!-- Save button at top, matching Android layout -->
+      <button id="btnSettingsSave"
+              class="btn btn-whereami w-100 mb-4"
+              aria-label="Save settings"
+              onclick="Settings.save(); App.showView('view-home')">
+        Save
+      </button>
+
+      <!-- General settings section -->
+      <p class="whereami-section-title">General Settings</p>
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" id="chkMiles" />
+        <label class="form-check-label whereami-label" for="chkMiles">
+          Units: Foot and mile
+        </label>
+      </div>
+
+      <!-- Where am I? settings section -->
+      <p class="whereami-section-title mt-3">Settings for Where am I?</p>
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" id="chkAltitude" />
+        <label class="form-check-label whereami-label" for="chkAltitude">
+          Get altitude using web service
+        </label>
+      </div>
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" id="chkShowGpsWhere" />
+        <label class="form-check-label whereami-label" for="chkShowGpsWhere">
+          Show GPS output
+        </label>
+      </div>
+
+      <div class="mb-3">
+        <label class="whereami-label" for="selFixes">
+          Number of fixes for best GPS fix:
+        </label>
+        <select class="form-select mt-1" id="selFixes" aria-label="Number of GPS fixes">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3" selected>3</option>
+          <option value="5">5</option>
+          <option value="10">10</option>
+        </select>
+      </div>
+
+      <!-- Show Direction settings section -->
+      <p class="whereami-section-title mt-3">Settings for Show Direction</p>
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" id="chkShowGpsDirection" />
+        <label class="form-check-label whereami-label" for="chkShowGpsDirection">
+          Show GPS output
+        </label>
+      </div>
+
+    </div>
+  </div><!-- /view-settings -->
+
+
+  <!-- ============================================================
+       VIEW: Map  (id="view-map")
+       Full Leaflet map with OSM tiles, map/satellite toggle
+  ============================================================ -->
+  <div id="view-map" class="view d-none">
+
+    <!-- Navbar: back | title | map/satellite toggle -->
+    <nav class="navbar navbar-dark px-2 whereami-navbar d-flex align-items-center">
+      <div style="width:4rem">
+        <button class="btn btn-link p-0 whereami-nav-icon"
+                aria-label="Back"
+                onclick="AppMap.handleBack()">
+          <i class="bi bi-arrow-left-circle-fill fs-4"></i>
+        </button>
+      </div>
+      <span class="navbar-brand whereami-title mb-0" id="map-title">Map</span>
+      <div class="d-flex gap-3 ms-auto">
+        <!-- WHERE_AM_I: refresh button -->
+        <button class="btn btn-link p-0 whereami-nav-icon d-none"
+                id="btnRefreshWhere"
+                aria-label="Refresh location"
+                onclick="WhereAmI.start()">
+          <i class="bi bi-arrow-clockwise fs-4"></i>
+        </button>
+        <!-- SHOW_DIRECTION: start/stop toggle -->
+        <button class="btn btn-link p-0 whereami-nav-icon d-none"
+                id="btnDirectionToggle"
+                aria-label="Start tracking"
+                onclick="ShowDirection.toggleTracking()">
+          <i class="bi bi-play-circle-fill fs-4"></i>
+        </button>
+        <!-- MARK_HERE / MARK_PLACE: save mark (shown when location is confirmed) -->
+        <button class="btn btn-link p-0 whereami-nav-icon d-none"
+                id="btnMarkSave"
+                aria-label="Save mark"
+                onclick="MarkHere.saveMark()">
+          <i class="bi bi-floppy-fill fs-4"></i>
+        </button>
+        <!-- MARK_HERE / MARK_PLACE: cancel / go back -->
+        <button class="btn btn-link p-0 whereami-nav-icon d-none"
+                id="btnMarkCancel"
+                aria-label="Cancel mark"
+                onclick="App.showView('view-home')">
+          <i class="bi bi-x-circle-fill fs-4"></i>
+        </button>
+        <button class="btn btn-link p-0 whereami-nav-icon"
+                id="btnToggleTiles"
+                aria-label="Toggle map / satellite"
+                onclick="AppMap.toggleTiles()">
+          <i class="bi bi-layers-fill fs-4"></i>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Clipping wrapper — hides the oversized rotated map canvas -->
+    <div id="map-viewport">
+      <!-- Leaflet map container — intentionally oversized so rotation corners stay hidden -->
+      <div id="leaflet-map"></div>
+    </div>
+
+    <!-- GPS info text panel — outside the clip wrapper so it is never clipped -->
+    <div id="gps-info-panel" class="gps-info-panel d-none" aria-live="polite"></div>
+
+  </div><!-- /view-map -->
+
+
+  <!-- ============================================================
+       VIEW: Help  (id="view-help")
+       Content adapted from android/assets/readme.htm
+  ============================================================ -->
+  <div id="view-help" class="view d-none">
+
+    <nav class="navbar navbar-dark px-3 whereami-navbar d-flex align-items-center">
+      <div style="width:4rem">
+        <button class="btn btn-link p-0 whereami-nav-icon"
+                aria-label="Back"
+                onclick="App.showView('view-home')">
+          <i class="bi bi-arrow-left-circle-fill fs-4"></i>
+        </button>
+      </div>
+      <span class="navbar-brand whereami-title mb-0">Help</span>
+      <div style="width:4rem"></div>
+    </nav>
+
+    <div class="container-fluid px-3 mt-3 pb-4">
+
+      <p class="whereami-label">&copy; GubboIT&trade; 2012&ndash;2013</p>
+
+      <h2 class="help-heading">Where am I? &ndash; 1.0</h2>
+      <p class="whereami-label">The <strong>Where am I</strong> app finds your way. The app works with GPS and
+      OpenStreetMap. Use the functions <strong>Where am I</strong> or <strong>I am lost</strong> possibly
+      in combination with the <strong>Mark</strong> function.</p>
+
+      <h2 class="help-heading">Where am I?</h2>
+      <p class="whereami-label">Touch <strong>Where am I</strong> and your current location is shown on the
+      map as a red cross. Additional info like latitude, longitude, accuracy, and altitude may also be
+      displayed. See also <strong>Set Mark</strong> below.</p>
+
+      <h2 class="help-heading">I am lost &ndash; Show Direction!</h2>
+      <p class="whereami-label"><strong>I am lost</strong> is intended to be used when you are totally lost.
+      Touch <strong>I am lost &ndash; Show direction!</strong> and start walking. The map is oriented in the
+      direction you walk. Your route is shown on the map. Touch the <strong>Stop</strong> button when you
+      are sure about the correct direction.</p>
+
+      <h2 class="help-heading">Set Mark</h2>
+      <p class="whereami-label"><strong>Set Mark</strong> sets a mark (a finish flag &#x1F3C1;) on the map.
+      You can set the mark where you are or on another place. From <strong>Where am I</strong> and
+      <strong>I am lost</strong> the &ldquo;crow path&rdquo; from your current position to the mark is
+      shown as a dashed line on the map.</p>
+      <p class="whereami-label"><strong>Mark here</strong> may be useful for example when you want to go
+      back to your car &mdash; set the mark before leaving the car.</p>
+      <p class="whereami-label"><strong>Mark on another place</strong> sets the finish flag on any place on
+      the map. Enter the name of the place (for example an address). The place is shown on the map and you
+      can tap the map to move it. Then press <strong>Save</strong> (&#x1F4BE;).</p>
+      <p class="whereami-label">To remove the mark, touch the <strong>Mark</strong> button and confirm
+      <strong>Remove Mark</strong>.</p>
+      <p class="whereami-label">When using the mark you can run <strong>Where am I</strong> and
+      <strong>I am lost</strong> a number of times and check that you are heading towards the finish
+      flag.</p>
+
+      <h2 class="help-heading">Settings</h2>
+      <p class="whereami-label"><strong>Units: foot and mile.</strong> Defaults are metre and kilometre.</p>
+      <p class="whereami-label"><strong>Get altitude using web service.</strong> The altitude provided by
+      GPS is often not accurate. Improve altitude accuracy by selecting this option.</p>
+      <p class="whereami-label"><strong>Number of fixes for best GPS fix.</strong> Accuracy can be improved
+      by selecting the best point (best accuracy) from more than one measurement.</p>
+
+    </div>
+
+  </div><!-- /view-help -->
+
+
+  <!-- ============================================================
+       Bootstrap confirm dialog — reusable modal
+  ============================================================ -->
+  <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content whereami-modal">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title whereami-modal-title" id="confirmModalTitle"></h5>
+        </div>
+        <div class="modal-body pt-1" id="confirmModalBody"></div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-whereami"
+                  id="confirmModalOK">OK</button>
+          <button type="button" class="btn btn-outline-secondary"
+                  data-bs-dismiss="modal"
+                  id="confirmModalCancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Bootstrap 5 JS bundle (includes Popper) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- App modules (order matters) -->
+  <script src="js/settings.js"></script>
+  <script src="js/map.js?v=4"></script>
+  <script src="js/gps.js?v=3"></script>
+  <script src="js/elevation.js"></script>
+  <script src="js/whereami.js?v=3"></script>
+  <script src="js/showdirection.js?v=3"></script>
+  <script src="js/markhere.js?v=3"></script>
+  <script src="js/app.js?v=7"></script>
+
+</body>
+</html>

@@ -1,0 +1,289 @@
+/*
+ * app.css
+ * Minimal style overrides for the WhereAmI web app.
+ * Everything else is handled by Bootstrap 5.
+ * Color scheme matches the Android app: red (#FF0000) on tiled ontrack.png.
+ */
+
+/* ── Global background ──────────────────────────────────── */
+
+body {
+  background-image: url('../assets/ontrack.png');
+  background-repeat: repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
+  /* Slightly darken the tile so text stays legible */
+  background-color: #1a1a1a;
+}
+
+/* ── Navbar ─────────────────────────────────────────────── */
+
+.whereami-navbar {
+  background-color: rgba(0, 0, 0, 0.70);
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+/* App title — red, bold, italic, drop-shadow matching Android */
+.whereami-title {
+  color: #FF0000 !important;
+  font-weight: bold;
+  font-style: italic;
+  font-size: 1.25rem;
+  text-shadow: 3px 3px 6px #000;
+  letter-spacing: 0.02em;
+  flex: 1;
+  text-align: center;
+  margin: 0;
+}
+
+/* Icon buttons in the navbar */
+.whereami-nav-icon {
+  color: #ffffff !important;
+  text-decoration: none;
+  line-height: 1;
+}
+.whereami-nav-icon:hover,
+.whereami-nav-icon:focus {
+  color: #cccccc !important;
+}
+
+/* ── Primary button style ─────────────────────────────── */
+/* Mirrors Android buttons: red text, outlined, full-width */
+
+.btn-whereami {
+  color: #FF0000;
+  background-color: #d0d0d0;
+  border: 1.5px solid #FF0000;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.65rem 1rem;
+  border-radius: 6px;
+  transition: background-color 0.15s, color 0.15s;
+}
+.btn-whereami:hover,
+.btn-whereami:focus {
+  color: #fff;
+  background-color: #cc0000;
+  border-color: #cc0000;
+}
+.btn-whereami:disabled {
+  color: #888;
+  border-color: #555;
+  background-color: rgba(0, 0, 0, 0.35);
+}
+
+/* ── Section headings inside Settings ───────────────────── */
+
+.whereami-section-title {
+  color: #FF0000;
+  font-weight: 600;
+  text-decoration: underline;
+  margin-bottom: 0.25rem;
+}
+
+/* ── General label / body text ──────────────────────────── */
+
+.whereami-label {
+  color: #e8e8e8;
+  font-size: 0.95rem;
+}
+
+/* ── Form controls ──────────────────────────────────────── */
+
+.form-check-input:checked {
+  background-color: #FF0000;
+  border-color: #FF0000;
+}
+
+.form-select {
+  background-color: rgba(0, 0, 0, 0.55);
+  color: #e8e8e8;
+  border-color: #555;
+}
+.form-select:focus {
+  border-color: #FF0000;
+  box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25);
+}
+
+/* ── Bootstrap modal ────────────────────────────────────── */
+
+.whereami-modal {
+  background-color: #1e1e1e;
+  color: #e8e8e8;
+  border: 1px solid #444;
+}
+.whereami-modal-title {
+  color: #FF0000;
+  font-weight: bold;
+}
+.whereami-modal .list-group-item {
+  background-color: transparent;
+  color: #e8e8e8;
+  border-color: #444;
+}
+.whereami-modal .list-group-item:hover {
+  background-color: rgba(255, 0, 0, 0.15);
+  color: #fff;
+}
+
+/* ── Rotate-device overlay ──────────────────────────────── */
+
+/*
+ * Hidden by default and on large screens (tablets, desktops).
+ * Only visible on small screens (phones, max-height ≤ 500 px) in landscape.
+ * The max-height: 500px heuristic reliably identifies phones held sideways
+ * while leaving tablets (landscape height ~600 px+) and desktops unaffected.
+ */
+#rotate-overlay {
+  display: none;   /* hidden by default */
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: #1a1a1a;
+  background-image: url('../assets/ontrack.png');
+  background-repeat: repeat;
+  align-items: center;
+  justify-content: center;
+}
+#rotate-overlay-inner {
+  text-align: center;
+  color: #FF0000;
+  padding: 2rem;
+}
+#rotate-icon {
+  font-size: 5rem;
+  line-height: 1;
+  margin-bottom: 1rem;
+  display: inline-block;
+  animation: rotate-hint 1.5s ease-in-out infinite;
+}
+#rotate-overlay-inner p {
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: #FF0000;
+  margin: 0;
+  background-color: #d8d8d8;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+}
+@keyframes rotate-hint {
+  0%   { transform: rotate(0deg);   }
+  40%  { transform: rotate(-90deg); }
+  60%  { transform: rotate(-90deg); }
+  100% { transform: rotate(0deg);   }
+}
+
+/* Show overlay only on small-screen landscape (phones rotated sideways) */
+@media (orientation: landscape) and (max-height: 500px) {
+  #rotate-overlay {
+    display: flex;
+  }
+}
+
+/* ── View container ─────────────────────────────────────── */
+
+.view {
+  min-height: 100vh;
+}
+
+/* Settings and Help views get a solid background so the tiled
+   map image doesn't show through and text remains legible. */
+#view-settings,
+#view-help {
+  background-color: #2a2a2a;
+}
+
+/* Section headings inside Help */
+.help-heading {
+  color: #FF0000;
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.35rem;
+  border-bottom: 1px solid #444;
+  padding-bottom: 0.2rem;
+}
+
+/* Make form-check labels clearly visible on dark background */
+#view-settings .form-check-label,
+#view-settings label {
+  color: #e8e8e8;
+}
+
+/* Active tracking state — ⏹ stop button glows red */
+.tracking-active {
+  color: #FF0000 !important;
+}
+
+/* ── Map view ────────────────────────────────────────────── */
+
+/* Map view — position:fixed so body scroll state (left by Bootstrap modals)
+   on iOS Safari cannot push the view off-screen. top/bottom replace height:100vh. */
+#view-map {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+/* Push the map navbar below the iPhone notch / Dynamic Island.
+   Only needed on the map view because it is the only fixed-position full-screen view.
+   viewport-fit=cover lets us draw edge-to-edge; env() keeps content out of the notch. */
+#view-map .whereami-navbar {
+  padding-top: calc(0.5rem + env(safe-area-inset-top, 0px));
+  padding-bottom: 0.5rem;
+}
+
+/*
+ * Clipping wrapper — sits between navbar and bottom of screen.
+ * overflow:hidden ensures the oversized rotated canvas never
+ * bleeds over the navbar or shows background gaps.
+ */
+#map-viewport {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/*
+ * Leaflet canvas — oversized using vmax so all corners stay
+ * inside the clip box at any rotation angle.
+ * Centred with negative margins so the map visual centre
+ * stays in the middle of the viewport.
+ * 150vmax > sqrt(viewport_w² + viewport_h²) on all phones/tablets.
+ */
+#leaflet-map {
+  position: absolute;
+  width: 150vmax;
+  height: 150vmax;
+  top: 50%;
+  left: 50%;
+  margin-top: calc(-75vmax);
+  margin-left: calc(-75vmax);
+  transform-origin: center center;
+}
+
+/* GPS info text panel — floating, semi-transparent, matching Android gpsllal TextView */
+.gps-info-panel {
+  position: fixed;
+  /* env(safe-area-inset-bottom) keeps the panel above the iPhone home indicator */
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  left: 0.5rem;
+  right: 0.5rem;
+  background-color: #d8d8d8;
+  color: #cc0000;
+  font-size: 0.82rem;
+  font-family: monospace;
+  font-weight: bold;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  z-index: 1000;
+  pointer-events: none;
+  white-space: pre-line;
+}
