@@ -171,6 +171,20 @@
         </label>
       </div>
 
+      <div class="mb-3">
+        <label class="whereami-label" for="selMinAccuracy">
+          Minimum accepted GPS accuracy:
+        </label>
+        <select class="form-select mt-1" id="selMinAccuracy" aria-label="Minimum accepted GPS accuracy">
+          <option value="10">10 m</option>
+          <option value="15">15 m</option>
+          <option value="20" selected>20 m</option>
+          <option value="30">30 m</option>
+          <option value="40">40 m</option>
+          <option value="50">50 m</option>
+        </select>
+      </div>
+
     </div>
   </div><!-- /view-settings -->
 
@@ -301,6 +315,9 @@
       GPS is often not accurate. Improve altitude accuracy by selecting this option.</p>
       <p class="whereami-label"><strong>Number of fixes for best GPS fix.</strong> Accuracy can be improved
       by selecting the best point (best accuracy) from more than one measurement.</p>
+      <p class="whereami-label"><strong>Minimum accepted GPS accuracy (Show Direction).</strong> Route points are
+      only accepted when GPS accuracy is better than the selected value (10, 15, 20, 30, 40, or 50 metres).
+      Default is 20 m. Lower values are stricter and reduce noisy routes in poor reception.</p>
 
     </div>
 
