@@ -120,6 +120,14 @@ const ShowDirection = (() => {
     const altitude = pos.coords.altitude;
     const speed    = pos.coords.speed;     // m/s, null/NaN when stationary
 
+    // Reject fixes that are too imprecise for route drawing.
+    const minAccuracy = parseInt(Settings.get('par_direction_min_accuracy'), 10) || 20;
+    if (!isFinite(accuracy) || accuracy >= minAccuracy) {
+      AppMap.setPositionMarker(lat, lng);
+      _displayInfo(lat, lng, accuracy, altitude);
+      return;
+    }
+
     // ── Distance filter ──────────────────────────────────────────
     // Only plot a new route point if the device has actually moved
     // further than the current fix's accuracy radius.

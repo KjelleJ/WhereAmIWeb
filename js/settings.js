@@ -15,6 +15,7 @@ const Settings = (() => {
     par_miles:               false,  // Use feet/miles instead of metres/km
     par_where_show_gps:      true,   // Show GPS info on Where am I screen
     par_direction_show_gps:  true,   // Show GPS info on Direction screen
+    par_direction_min_accuracy: 20,  // Max accepted GPS accuracy (metres) in Direction mode
     par_where_fixes4pt:      3,      // Number of GPS fixes to collect for best fix
     par_isMark:              false,  // Whether a mark is currently set
     par_markLat:             '',     // Saved mark latitude (string)
@@ -81,6 +82,7 @@ const Settings = (() => {
     document.getElementById('chkShowGpsWhere').checked   = prefs.par_where_show_gps;
     document.getElementById('chkShowGpsDirection').checked = prefs.par_direction_show_gps;
     document.getElementById('selFixes').value            = String(prefs.par_where_fixes4pt);
+    document.getElementById('selMinAccuracy').value      = String(_normalizeMinAccuracy(prefs.par_direction_min_accuracy));
   }
 
   /**
@@ -93,6 +95,20 @@ const Settings = (() => {
     prefs.par_where_show_gps      = document.getElementById('chkShowGpsWhere').checked;
     prefs.par_direction_show_gps  = document.getElementById('chkShowGpsDirection').checked;
     prefs.par_where_fixes4pt      = parseInt(document.getElementById('selFixes').value, 10);
+    prefs.par_direction_min_accuracy = _normalizeMinAccuracy(
+      parseInt(document.getElementById('selMinAccuracy').value, 10)
+    );
+  }
+
+  /**
+   * Keep min accuracy constrained to allowed option values.
+   * @param {number} value
+   * @returns {number}
+   * @private
+   */
+  function _normalizeMinAccuracy(value) {
+    const allowed = [10, 15, 20, 30, 40, 50];
+    return allowed.includes(value) ? value : 20;
   }
 
   // Expose public API
